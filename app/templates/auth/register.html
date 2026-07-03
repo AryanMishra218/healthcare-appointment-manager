@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Register - HealthConnect{% endblock %}
+{% block content %}
+<div class="auth-split">
+    <div class="auth-banner">
+        <h1>⚕ HealthConnect</h1>
+        <p>Create your patient account to start booking appointments with our network of doctors.</p>
+        <ul>
+            <li>Search doctors by specialization</li>
+            <li>Instant slot booking, no phone calls</li>
+            <li>Track every appointment and visit summary in one place</li>
+        </ul>
+    </div>
+    <div class="auth-form-side">
+        <div class="container">
+            <div class="card">
+                <h2>Create your patient account</h2>
+                <p style="color: var(--color-text-muted); margin-top: -8px;">Book appointments and manage your visits.</p>
+
+                {% include "_flash.html" %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <label for="{{ form.name.id }}">{{ form.name.label.text }}</label>
+                    {{ form.name(type="text") }}
+                    {% for error in form.name.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+                    <label for="{{ form.email.id }}">{{ form.email.label.text }}</label>
+                    {{ form.email(type="email") }}
+                    {% for error in form.email.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+                    <label for="{{ form.password.id }}">{{ form.password.label.text }}</label>
+                    {{ form.password(type="password") }}
+                    {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+                    <label for="{{ form.confirm_password.id }}">{{ form.confirm_password.label.text }}</label>
+                    {{ form.confirm_password(type="password") }}
+                    {% for error in form.confirm_password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+                    {{ form.submit(class="btn") }}
+                </form>
+
+                <div class="form-footer">
+                    Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

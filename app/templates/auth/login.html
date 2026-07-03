@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Log In - HealthConnect{% endblock %}
+{% block content %}
+<div class="auth-split">
+    <div class="auth-banner">
+        <h1>⚕ HealthConnect</h1>
+        <p>One platform to book appointments, get AI-assisted symptom triage, and keep every visit organized — for patients, doctors, and clinic admins alike.</p>
+        <ul>
+            <li>Book a slot with your doctor in seconds</li>
+            <li>AI pre-visit summaries so your doctor is prepared</li>
+            <li>Google Calendar sync, automatic reminders</li>
+        </ul>
+    </div>
+    <div class="auth-form-side">
+        <div class="container">
+            <div class="card">
+                <h2>Log in</h2>
+                <p style="color: var(--color-text-muted); margin-top: -8px;">Patients, doctors, and admins all sign in here.</p>
+
+                {% include "_flash.html" %}
+
+                <form method="POST" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <label for="{{ form.email.id }}">{{ form.email.label.text }}</label>
+                    {{ form.email(type="email") }}
+                    {% for error in form.email.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+                    <label for="{{ form.password.id }}">{{ form.password.label.text }}</label>
+                    {{ form.password(type="password") }}
+                    {% for error in form.password.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+                    {{ form.submit(class="btn") }}
+                </form>
+
+                <div class="form-footer">
+                    New patient? <a href="{{ url_for('auth.register') }}">Create an account</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

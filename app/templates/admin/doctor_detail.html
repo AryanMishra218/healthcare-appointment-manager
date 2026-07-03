@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}{{ doctor.user.name }} - Manage{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <div class="page-header">
+        <h1>{{ doctor.user.name }}</h1>
+        <a href="{{ url_for('admin.edit_doctor', doctor_id=doctor.id) }}" class="btn-small">Edit Details</a>
+    </div>
+    <p style="color: var(--color-text-muted); margin-top: -12px;">
+        {{ doctor.specialization }} &middot;
+        {{ doctor.working_start.strftime('%I:%M %p') }} - {{ doctor.working_end.strftime('%I:%M %p') }} &middot;
+        {{ doctor.slot_duration_minutes }} min slots
+    </p>
+
+    {% include "_flash.html" %}
+
+    <div class="card" style="max-width: 500px; margin-top: 24px;">
+        <h2 style="font-size: 1.1rem;">Mark a leave day</h2>
+        <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-top: -8px;">
+            Any existing bookings on this date will be automatically cancelled and the patient queued for notification.
+        </p>
+
+        <form method="POST" action="{{ url_for('admin.add_leave', doctor_id=doctor.id) }}" novalidate>
+            {{ leave_form.hidden_tag() }}
+
+            <label for="{{ leave_form.leave_date.id }}">{{ leave_form.leave_date.label.text }}</label>
+            {{ leave_form.leave_date() }}
+            {% for error in leave_form.leave_date.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+            <label for="{{ leave_form.reason.id }}">{{ leave_form.reason.label.text }}</label>
+            <textarea name="{{ leave_form.reason.name }}" id="{{ leave_form.reason.id }}" rows="2"
+                style="width:100%; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px; font-family:var(--font-body);"></textarea>
+
+            {{ leave_form.submit(class="btn") }}
+        </form>
+    </div>
+
+    <h2 style="margin-top: 32px; font-size: 1.1rem;">Upcoming leave days</h2>
+    {% if leaves %}
+    <table class="data-table">
+        <thead><tr><th>Date</th><th>Reason</th></tr></thead>
+        <tbody>
+            {% for leave in leaves %}
+            <tr>
+                <td>{{ leave.leave_date.strftime('%d %b %Y') }}</td>
+                <td>{{ leave.reason or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No upcoming leave days.</div>
+    {% endif %}
+</div>
+{% endblock %}

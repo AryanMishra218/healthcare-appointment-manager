@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>Welcome, {{ current_user.name }}</h1>
+
+    {% include "_flash.html" %}
+
+    <div class="stat-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ doctor_count }}</div>
+            <div class="stat-label">Total Doctors</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ todays_appointments }}</div>
+            <div class="stat-label">Today's Appointments</div>
+        </div>
+    </div>
+
+    <div class="action-cards">
+        <a href="{{ url_for('admin.list_doctors') }}" class="action-card">
+            <div class="action-icon">🩺</div>
+            <h3>Manage Doctors</h3>
+            <p>Add, edit, and manage doctor profiles.</p>
+        </a>
+        <a href="{{ url_for('calendar_oauth.status') }}" class="action-card">
+            <div class="action-icon">📆</div>
+            <h3>Google Calendar</h3>
+            <p>Connect or check calendar sync status.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

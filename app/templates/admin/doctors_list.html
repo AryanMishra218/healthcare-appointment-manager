@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Manage Doctors{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <div class="page-header">
+        <h1>Doctors</h1>
+        <a href="{{ url_for('admin.create_doctor') }}" class="btn-small">+ Add Doctor</a>
+    </div>
+
+    {% include "_flash.html" %}
+
+    {% if doctors %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Specialization</th>
+                <th>Working Hours</th>
+                <th>Slot Length</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for doctor in doctors %}
+            <tr>
+                <td>{{ doctor.user.name }}</td>
+                <td>{{ doctor.specialization }}</td>
+                <td>{{ doctor.working_start.strftime('%I:%M %p') }} - {{ doctor.working_end.strftime('%I:%M %p') }}</td>
+                <td>{{ doctor.slot_duration_minutes }} min</td>
+                <td><a href="{{ url_for('admin.doctor_detail', doctor_id=doctor.id) }}">Manage →</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No doctors yet. Add your first doctor to get started.</div>
+    {% endif %}
+</div>
+{% endblock %}

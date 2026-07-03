@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+env/
+.venv/
+
+# Secrets - NEVER commit this
+.env
+
+# Local database file
+*.db
+*.sqlite3
+
+# Migrations cache (we'll keep the migrations folder itself, just not this)
+instance/
+
+# OS/editor junk
+.DS_Store
+.vscode/
+.idea/

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Appointment Detail{% endblock %}
+{% block content %}
+<div class="dashboard-container" style="max-width: 700px;">
+    <h1>{{ appointment.patient.name }}</h1>
+    <p style="color: var(--color-text-muted); margin-top: -12px;">
+        {{ appointment.appointment_date.strftime('%d %b %Y') }} at {{ appointment.start_time.strftime('%I:%M %p') }}
+    </p>
+
+    {% include "_flash.html" %}
+
+    <div class="card" style="margin-top: 16px;">
+        <h2 style="font-size: 1.05rem;">Pre-Visit Summary</h2>
+
+        {% set sf = appointment.symptom_form %}
+        {% if sf %}
+            {% if sf.ai_urgency_level %}
+            <div style="margin-bottom: 12px;">
+                <span class="badge {{ sf.ai_urgency_level|lower }}">{{ sf.ai_urgency_level }} urgency</span>
+            </div>
+            <p><strong>Chief complaint:</strong> {{ sf.ai_chief_complaint }}</p>
+            <p><strong>Suggested questions:</strong></p>
+            <ul>
+                {% for q in sf.ai_suggested_questions_list %}
+                <li>{{ q }}</li>
+                {% endfor %}
+            </ul>
+            {% elif sf.ai_summary_failed %}
+            <p style="color: var(--color-medium);">AI summary was unavailable for this visit. Raw symptoms below.</p>
+            {% endif %}
+            <p><strong>Patient-reported symptoms:</strong><br>{{ sf.symptoms_text }}</p>
+        {% else %}
+            <p style="color: var(--color-text-muted);">Patient has not submitted a symptom form yet.</p>
+        {% endif %}
+    </div>
+
+    {% if appointment.status == "completed" %}
+    <div class="card" style="margin-top: 16px;">
+        <h2 style="font-size: 1.05rem;">Visit Notes (completed)</h2>
+        <p><strong>Clinical notes:</strong><br>{{ appointment.visit_note.clinical_notes }}</p>
+        <p><strong>Prescription:</strong><br>{{ appointment.visit_note.prescription or '—' }}</p>
+        {% if appointment.visit_note.ai_patient_summary %}
+        <p><strong>AI patient-friendly summary (sent to patient):</strong></p>
+        <p style="background: var(--color-bg); padding: 12px; border-radius: 8px;">{{ appointment.visit_note.ai_patient_summary }}</p>
+        {% elif appointment.visit_note.ai_summary_failed %}
+        <p style="color: var(--color-medium);">AI patient summary was unavailable for this visit.</p>
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="card" style="margin-top: 16px;">
+        <h2 style="font-size: 1.05rem;">Complete This Visit</h2>
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <label for="{{ form.clinical_notes.id }}">{{ form.clinical_notes.label.text }}</label>
+            <textarea name="{{ form.clinical_notes.name }}" id="{{ form.clinical_notes.id }}" rows="5"
+                style="width:100%; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px; font-family:var(--font-body);"></textarea>
+            {% for error in form.clinical_notes.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+            <label for="{{ form.prescription.id }}">{{ form.prescription.label.text }}</label>
+            <textarea name="{{ form.prescription.name }}" id="{{ form.prescription.id }}" rows="3"
+                placeholder="e.g. Paracetamol 500mg, twice daily, after meals, for 5 days"
+                style="width:100%; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px; font-family:var(--font-body);"></textarea>
+            {% for error in form.prescription.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+            {{ form.submit(class="btn") }}
+        </form>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

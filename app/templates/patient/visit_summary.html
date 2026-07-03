@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Visit Summary{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h2>Your visit summary</h2>
+        <p style="color: var(--color-text-muted); margin-top: -8px;">
+            With {{ appointment.doctor.user.name }} on {{ appointment.appointment_date.strftime('%d %b %Y') }}
+        </p>
+
+        {% if appointment.visit_note.ai_patient_summary %}
+        <p style="background: var(--color-bg); padding: 16px; border-radius: 8px; white-space: pre-line;">{{ appointment.visit_note.ai_patient_summary }}</p>
+        {% else %}
+        <p style="color: var(--color-medium);">An easy-to-read summary wasn't available for this visit. Here are your doctor's notes:</p>
+        <p style="background: var(--color-bg); padding: 16px; border-radius: 8px;">{{ appointment.visit_note.clinical_notes }}</p>
+        {% endif %}
+
+        {% if appointment.visit_note.prescription %}
+        <h3 style="font-size: 1rem; margin-top: 20px;">Prescription</h3>
+        <p>{{ appointment.visit_note.prescription }}</p>
+        {% endif %}
+
+        <a href="{{ url_for('patient.my_appointments') }}" style="display:inline-block; margin-top: 16px;">&larr; Back to my appointments</a>
+    </div>
+</div>
+{% endblock %}

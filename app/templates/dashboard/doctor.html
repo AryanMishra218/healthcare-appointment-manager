@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Doctor Dashboard{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>Welcome, Dr. {{ current_user.name }}</h1>
+
+    {% include "_flash.html" %}
+
+    <div class="stat-cards">
+        <div class="stat-card">
+            <div class="stat-number">{{ today_appointments }}</div>
+            <div class="stat-label">Today's Appointments</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ upcoming_total }}</div>
+            <div class="stat-label">Total Upcoming</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ completed_total }}</div>
+            <div class="stat-label">Completed Visits</div>
+        </div>
+    </div>
+
+    <div class="action-cards">
+        <a href="{{ url_for('doctor.appointments_list') }}" class="action-card">
+            <div class="action-icon">🗓️</div>
+            <h3>My Appointments</h3>
+            <p>View upcoming and completed visits.</p>
+        </a>
+        <a href="{{ url_for('doctor.change_password') }}" class="action-card">
+            <div class="action-icon">🔒</div>
+            <h3>Change Password</h3>
+            <p>Update your temporary login password.</p>
+        </a>
+    </div>
+</div>
+{% endblock %}

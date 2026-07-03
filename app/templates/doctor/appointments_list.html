@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}My Appointments{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>Upcoming Appointments</h1>
+
+    {% include "_flash.html" %}
+
+    {% if upcoming %}
+    <table class="data-table">
+        <thead><tr><th>Patient</th><th>Date</th><th>Time</th><th>Urgency</th><th>Chief Complaint</th><th></th></tr></thead>
+        <tbody>
+            {% for appt in upcoming %}
+            <tr>
+                <td>{{ appt.patient.name }}</td>
+                <td>{{ appt.appointment_date.strftime('%d %b %Y') }}</td>
+                <td>{{ appt.start_time.strftime('%I:%M %p') }}</td>
+                <td>
+                    {% if appt.symptom_form and appt.symptom_form.ai_urgency_level %}
+                    <span class="badge {{ appt.symptom_form.ai_urgency_level|lower }}">{{ appt.symptom_form.ai_urgency_level }}</span>
+                    {% elif appt.symptom_form %}
+                    <span style="color: var(--color-text-muted); font-size: 0.85rem;">AI unavailable</span>
+                    {% else %}
+                    <span style="color: var(--color-text-muted); font-size: 0.85rem;">No symptoms yet</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if appt.symptom_form and appt.symptom_form.ai_chief_complaint %}
+                        {{ appt.symptom_form.ai_chief_complaint }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td><a href="{{ url_for('doctor.appointment_detail', appointment_id=appt.id) }}">View →</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No upcoming appointments.</div>
+    {% endif %}
+
+    <h2 style="margin-top: 40px;">Recently Completed</h2>
+    {% if completed %}
+    <table class="data-table">
+        <thead><tr><th>Patient</th><th>Date</th><th></th></tr></thead>
+        <tbody>
+            {% for appt in completed %}
+            <tr>
+                <td>{{ appt.patient.name }}</td>
+                <td>{{ appt.appointment_date.strftime('%d %b %Y') }}</td>
+                <td><a href="{{ url_for('doctor.appointment_detail', appointment_id=appt.id) }}">View →</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No completed visits yet.</div>
+    {% endif %}
+</div>
+{% endblock %}

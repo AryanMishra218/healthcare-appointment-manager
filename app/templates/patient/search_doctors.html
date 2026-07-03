@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Find a Doctor{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>Find a Doctor</h1>
+
+    {% include "_flash.html" %}
+
+    <form method="GET" style="margin-bottom: 24px; max-width: 360px;">
+        <label for="specialization">Filter by specialization</label>
+        <select name="specialization" id="specialization" onchange="this.form.submit()"
+            style="width:100%; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px;">
+            <option value="">All specializations</option>
+            {% for spec in all_specializations %}
+            <option value="{{ spec }}" {% if spec == current_filter %}selected{% endif %}>{{ spec }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if doctors %}
+    <table class="data-table">
+        <thead><tr><th>Name</th><th>Specialization</th><th>Working Hours</th><th></th></tr></thead>
+        <tbody>
+            {% for doctor in doctors %}
+            <tr>
+                <td>{{ doctor.user.name }}</td>
+                <td>{{ doctor.specialization }}</td>
+                <td>{{ doctor.working_start.strftime('%I:%M %p') }} - {{ doctor.working_end.strftime('%I:%M %p') }}</td>
+                <td><a href="{{ url_for('patient.view_slots', doctor_id=doctor.id) }}">View Slots →</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No doctors found.</div>
+    {% endif %}
+</div>
+{% endblock %}

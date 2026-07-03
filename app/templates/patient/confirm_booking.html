@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Confirm Booking{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h2>Confirm your appointment</h2>
+        <p>
+            <span class="countdown" id="countdown">{{ seconds_remaining }}s</span>
+            held for you — confirm before it expires.
+        </p>
+
+        {% include "_flash.html" %}
+
+        <div style="margin: 20px 0;">
+            <div class="summary-row"><span>Doctor</span><strong>{{ appointment.doctor.user.name }}</strong></div>
+            <div class="summary-row"><span>Specialization</span><strong>{{ appointment.doctor.specialization }}</strong></div>
+            <div class="summary-row"><span>Date</span><strong>{{ appointment.appointment_date.strftime('%d %b %Y') }}</strong></div>
+            <div class="summary-row"><span>Time</span><strong>{{ appointment.start_time.strftime('%I:%M %p') }} - {{ appointment.end_time.strftime('%I:%M %p') }}</strong></div>
+        </div>
+
+        <form method="POST">
+            {{ form.hidden_tag() }}
+            {{ form.submit(class="btn") }}
+        </form>
+    </div>
+</div>
+
+<script>
+    // Simple visual countdown -- the REAL expiry is enforced server-side
+    // (see confirm_booking() in routes/patient.py), this is just UX.
+    let remaining = {{ seconds_remaining }};
+    const el = document.getElementById('countdown');
+    const timer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+            clearInterval(timer);
+            el.textContent = 'Expired';
+            location.reload();
+        } else {
+            el.textContent = remaining + 's';
+        }
+    }, 1000);
+</script>
+{% endblock %}

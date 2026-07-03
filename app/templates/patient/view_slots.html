@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Book {{ doctor.user.name }}{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>{{ doctor.user.name }}</h1>
+    <p style="color: var(--color-text-muted); margin-top: -12px;">{{ doctor.specialization }}</p>
+
+    {% include "_flash.html" %}
+
+    <div class="date-nav">
+        <a href="{{ url_for('patient.view_slots', doctor_id=doctor.id, date=(chosen_date.fromordinal(chosen_date.toordinal()-1)).isoformat()) }}">&larr; Prev day</a>
+        <strong>{{ chosen_date.strftime('%A, %d %B %Y') }}</strong>
+        <a href="{{ url_for('patient.view_slots', doctor_id=doctor.id, date=(chosen_date.fromordinal(chosen_date.toordinal()+1)).isoformat()) }}">Next day &rarr;</a>
+    </div>
+
+    {% if slot_forms %}
+    <div class="slot-grid">
+        {% for slot_time, form in slot_forms %}
+        <form method="POST" action="{{ url_for('patient.hold_slot', doctor_id=doctor.id) }}">
+            {{ form.hidden_tag() }}
+            <input type="hidden" name="appointment_date" value="{{ form.appointment_date.data }}">
+            <input type="hidden" name="start_time" value="{{ form.start_time.data }}">
+            <button type="submit">{{ slot_time.strftime('%I:%M %p') }}</button>
+        </form>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">No available slots on this date — try another day.</div>
+    {% endif %}
+</div>
+{% endblock %}

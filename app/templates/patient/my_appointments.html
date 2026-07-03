@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}My Appointments{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <h1>My Appointments</h1>
+
+    {% include "_flash.html" %}
+
+    {% if appointments %}
+    <table class="data-table">
+        <thead><tr><th>Doctor</th><th>Date</th><th>Time</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+            {% for appt in appointments %}
+            <tr>
+                <td>{{ appt.doctor.user.name }} <span style="color:var(--color-text-muted);">({{ appt.doctor.specialization }})</span></td>
+                <td>{{ appt.appointment_date.strftime('%d %b %Y') }}</td>
+                <td>{{ appt.start_time.strftime('%I:%M %p') }}</td>
+                <td>
+                    <span class="badge {{ 'low' if appt.status == 'booked' else ('high' if appt.status == 'cancelled' else 'medium') }}">
+                        {{ appt.status }}
+                    </span>
+                </td>
+                <td>
+                    {% if appt.status == 'booked' %}
+                    <form method="POST" action="{{ url_for('patient.cancel_appointment', appointment_id=appt.id) }}"
+                          onsubmit="return confirm('Cancel this appointment?');">
+                        {{ cancel_form.hidden_tag() }}
+                        <button type="submit" class="btn-danger">Cancel</button>
+                    </form>
+                    {% elif appt.status == 'completed' %}
+                    <a href="{{ url_for('patient.visit_summary', appointment_id=appt.id) }}">View Summary →</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">No appointments yet. <a href="{{ url_for('patient.search_doctors') }}">Find a doctor →</a></div>
+    {% endif %}
+</div>
+{% endblock %}

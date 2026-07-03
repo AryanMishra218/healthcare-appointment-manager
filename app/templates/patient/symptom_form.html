@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Symptom Form{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="card">
+        <h2>Tell us how you're feeling</h2>
+        <p>
+            <span class="countdown" id="countdown">{{ seconds_remaining }}s</span>
+            held for your appointment with {{ appointment.doctor.user.name }} on
+            {{ appointment.appointment_date.strftime('%d %b') }} at {{ appointment.start_time.strftime('%I:%M %p') }}.
+        </p>
+
+        {% include "_flash.html" %}
+
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <label for="{{ form.symptoms_text.id }}">{{ form.symptoms_text.label.text }}</label>
+            <textarea name="{{ form.symptoms_text.name }}" id="{{ form.symptoms_text.id }}" rows="6"
+                placeholder="e.g. I've had a headache and mild fever for 2 days, worse in the evenings..."
+                style="width:100%; padding:10px 12px; border:1px solid var(--color-border); border-radius:8px; font-family:var(--font-body); font-size:1rem;">{{ form.symptoms_text.data or '' }}</textarea>
+            {% for error in form.symptoms_text.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+            {{ form.submit(class="btn") }}
+        </form>
+    </div>
+</div>
+
+<script>
+    let remaining = {{ seconds_remaining }};
+    const el = document.getElementById('countdown');
+    const timer = setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+            clearInterval(timer);
+            el.textContent = 'Expired';
+            location.reload();
+        } else {
+            el.textContent = remaining + 's';
+        }
+    }, 1000);
+</script>
+{% endblock %}
