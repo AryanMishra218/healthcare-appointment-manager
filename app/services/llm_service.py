@@ -1,8 +1,10 @@
 import json
 import logging
 import traceback
+import re
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from flask import current_app
 
 logger = logging.getLogger(__name__)
@@ -18,6 +20,7 @@ Respond with ONLY valid JSON in exactly this shape, no markdown formatting, no e
   "suggested_questions": ["question 1", "question 2", "question 3"]
 }}"""
 
+GEMINI_MODELS = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"]
 
 def generate_pre_visit_summary(symptoms_text):
     """
@@ -29,14 +32,6 @@ def generate_pre_visit_summary(symptoms_text):
         'suggested_questions' on SUCCESS.
         None on ANY failure (missing API key, network error, malformed
         response, Gemini being down, etc).
-
-    *** WHY return None instead of letting exceptions bubble up? ***
-    This function is called from inside the booking flow. If an
-    exception here was allowed to crash the request, a Gemini outage
-    would mean PATIENTS COULD NOT BOOK APPOINTMENTS AT ALL -- a third-
-    party AI service being slow should never break our core business
-    function. By always returning either a valid dict or None, the
-    calling code only ever needs one simple check: "did it work or not."
     """
     api_key = current_app.config.get("GEMINI_API_KEY")
     if not api_key:
@@ -44,35 +39,63 @@ def generate_pre_visit_summary(symptoms_text):
         return None
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-flash-latest")
+        client = genai.Client(api_key=api_key)
 
         prompt = PRE_VISIT_PROMPT_TEMPLATE.format(symptoms=symptoms_text)
-        response = model.generate_content(
-            prompt,
-            generation_config={"temperature": 0.3, "max_output_tokens": 300, "response_mime_type": "application/json",},
-        )
+        response = None
+        last_error = None
+        for model_name in GEMINI_MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.3,
+                        max_output_tokens=2000,
+                        thinking_config=types.ThinkingConfig(thinking_budget=0),
+                    ),
+                )
+                print(f"Succeeded with model: {model_name}")
+                break
+            except Exception as model_err:
+                print(f"Model {model_name} failed: {model_err}")
+                last_error = model_err
+                continue
 
-        raw_text = response.text.strip()
+        if response is None:
+            raise last_error
+
+        print("=" * 80)
+        print("FULL RESPONSE OBJECT:")
+        print(repr(response))
+        if response.candidates:
+            for i, cand in enumerate(response.candidates):
+                print(f"candidate[{i}] finish_reason:", cand.finish_reason)
+        print("=" * 80)
+
+        raw_text = response.text or ""
+        raw_text = raw_text.strip()
 
         print("=" * 80)
         print("RAW GEMINI RESPONSE:")
         print(repr(raw_text))
         print("=" * 80)
 
-        # Gemini sometimes wraps JSON in ```json ... ``` markdown fences
-        if raw_text.startswith("```"):
-            raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+        # Pull out just the {...} JSON object, ignoring any preamble
+        # text or markdown code fences the model adds around it.
+        match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+        if not match:
+            logger.error(f"No JSON object found in Gemini response: {raw_text!r}")
+            return None
+        json_text = match.group(0)
 
         print("=" * 80)
-        print("AFTER CLEANUP:")
-        print(repr(raw_text))
+        print("EXTRACTED JSON:")
+        print(repr(json_text))
         print("=" * 80)
 
-        data = json.loads(raw_text)
+        data = json.loads(json_text)
 
-        # Validate the shape before trusting it -- never let a malformed
-        # AI response silently corrupt our database.
         required_keys = {"urgency_level", "chief_complaint", "suggested_questions"}
         if not required_keys.issubset(data.keys()):
             logger.error(f"Gemini response missing required keys: {data}")
@@ -89,9 +112,6 @@ def generate_pre_visit_summary(symptoms_text):
         return data
 
     except Exception as e:
-        # Deliberately broad: ANY failure here (network, parsing,
-        # API errors, timeouts) results in graceful degradation,
-        # never a crashed request.
         print("=" * 80)
         traceback.print_exc()
         print("=" * 80)
@@ -106,8 +126,7 @@ def generate_post_visit_summary(clinical_notes, prescription):
     steps.
 
     Returns a plain-text summary string on success, or None on ANY
-    failure -- same fail-safe philosophy as generate_pre_visit_summary:
-    a Gemini outage must never stop a doctor from completing a visit.
+    failure -- same fail-safe philosophy as generate_pre_visit_summary.
     """
     api_key = current_app.config.get("GEMINI_API_KEY")
     if not api_key:
@@ -124,11 +143,28 @@ def generate_post_visit_summary(clinical_notes, prescription):
     )
 
     try:
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-flash-latest")
-        response = model.generate_content(
-            prompt, generation_config={"temperature": 0.4, "max_output_tokens": 400}
-        )
+        client = genai.Client(api_key=api_key)
+        response = None
+        last_error = None
+        for model_name in GEMINI_MODELS:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        temperature=0.4,
+                        max_output_tokens=800,
+                        thinking_config=types.ThinkingConfig(thinking_budget=0),
+                    ),
+                )
+                break
+            except Exception as model_err:
+                last_error = model_err
+                continue
+
+        if response is None:
+            raise last_error
+
         summary_text = response.text.strip()
 
         if not summary_text:
