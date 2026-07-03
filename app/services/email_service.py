@@ -216,6 +216,36 @@ def send_booking_confirmation_doctor(appointment):
         appointment_id=appointment.id,
     )
 
+def send_doctor_credentials(doctor_user, temp_password):
+    """
+    Sent once, at doctor account creation. Gives them their Doctor ID
+    (their login identifier) and temporary password. Their real email
+    is only ever used to receive notifications like this one -- it is
+    never used to log in.
+    """
+    body = f"""
+    <p>Hi Dr. {doctor_user.name},</p>
+    <p>An account has been created for you on HealthConnect.</p>
+    <table style="width:100%; border-collapse: collapse; margin: 16px 0;">
+      <tr>
+        <td style="padding: 8px 0; color: #5C6B6B; width: 40%;">Doctor ID</td>
+        <td style="padding: 8px 0;"><strong>{doctor_user.username}</strong></td>
+      </tr>
+      <tr>
+        <td style="padding: 8px 0; color: #5C6B6B;">Temporary Password</td>
+        <td style="padding: 8px 0;"><strong>{temp_password}</strong></td>
+      </tr>
+    </table>
+    <p>Log in at the HealthConnect portal using your <strong>Doctor ID</strong>
+       (not your email) and this temporary password. Please change your
+       password immediately after logging in, from your dashboard.</p>
+    """
+    return _log_and_send(
+        to_email=doctor_user.email,
+        notification_type="doctor_credentials",
+        subject="Your HealthConnect Doctor Account",
+        html_body=_base_template("Welcome to HealthConnect", body),
+    )
 
 def send_cancellation_patient(appointment, reason=None):
     reason_line = f"<p><strong>Reason:</strong> {reason}</p>" if reason else ""

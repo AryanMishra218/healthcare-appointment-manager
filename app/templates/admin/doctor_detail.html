@@ -3,7 +3,7 @@
 {% block content %}
 <div class="dashboard-container">
     <div class="page-header">
-        <h1>{{ doctor.user.name }}</h1>
+        <h1>{{ doctor.user.name }} <span style="font-size:0.9rem; color: var(--color-text-muted); font-weight:400;">({{ doctor.user.username }})</span></h1>
         <a href="{{ url_for('admin.edit_doctor', doctor_id=doctor.id) }}" class="btn-small">Edit Details</a>
     </div>
     <p style="color: var(--color-text-muted); margin-top: -12px;">

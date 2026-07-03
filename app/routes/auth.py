@@ -54,7 +54,14 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.lower().strip()).first()
+        identifier = form.identifier.data.strip()
+
+        # '@' means they typed an email (patient/admin). Otherwise,
+        # treat it as a Doctor ID -- always stored/compared uppercase.
+        if "@" in identifier:
+            user = User.query.filter_by(email=identifier.lower()).first()
+        else:
+            user = User.query.filter_by(username=identifier.upper()).first()
 
         # IMPORTANT: we check "user exists AND password matches" together,
         # and show the SAME error message either way. If we said

@@ -3,8 +3,8 @@ from datetime import date as date_cls
 from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import current_user
 
-from app.models import db, Appointment, VisitNote
-from app.forms import VisitNoteForm , ChangePasswordForm
+from app.forms import VisitNoteForm, ChangePasswordForm, LeaveRequestForm
+from app.models import db, Appointment, DoctorProfile, VisitNote, LeaveRequest
 from app.utils import roles_required
 from app.services import llm_service
 from app.services import email_service
@@ -106,3 +106,35 @@ def change_password():
         return redirect(url_for("dashboard.doctor_dashboard"))
 
     return render_template("doctor/change_password.html", form=form)
+
+@doctor_bp.route("/leave-request", methods=["GET", "POST"])
+@roles_required("doctor")
+def leave_request():
+    doctor = current_user.doctor_profile
+    form = LeaveRequestForm()
+
+    if form.validate_on_submit():
+        # Don't allow duplicate pending requests for the same date
+        existing = LeaveRequest.query.filter_by(
+            doctor_id=doctor.id, leave_date=form.leave_date.data, status="pending"
+        ).first()
+        if existing:
+            flash("You already have a pending request for this date.", "error")
+            return redirect(url_for("doctor.leave_request"))
+
+        req = LeaveRequest(
+            doctor_id=doctor.id,
+            leave_date=form.leave_date.data,
+            reason=form.reason.data,
+        )
+        db.session.add(req)
+        db.session.commit()
+        flash("Leave request submitted. You'll be notified once admin responds.", "success")
+        return redirect(url_for("doctor.leave_request"))
+
+    my_requests = (
+        LeaveRequest.query.filter_by(doctor_id=doctor.id)
+        .order_by(LeaveRequest.requested_at.desc())
+        .all()
+    )
+    return render_template("doctor/leave_request.html", form=form, requests=my_requests)

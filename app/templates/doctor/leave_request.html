@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Request Leave{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <a href="javascript:history.back()" class="back-link">← Back</a>
+    <h1>Request Leave</h1>
+
+    {% include "_flash.html" %}
+
+    <div class="card" style="max-width: 480px;">
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+
+            <label for="{{ form.leave_date.id }}">{{ form.leave_date.label.text }}</label>
+            {{ form.leave_date() }}
+            {% for error in form.leave_date.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+            <label for="{{ form.reason.id }}">{{ form.reason.label.text }}</label>
+            {{ form.reason() }}
+            {% for error in form.reason.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+            {{ form.submit(class="btn") }}
+        </form>
+    </div>
+
+    <h2 style="margin-top: 32px;">Your Requests</h2>
+    {% if requests %}
+    <table class="data-table">
+        <thead>
+            <tr><th>DATE</th><th>REASON</th><th>STATUS</th></tr>
+        </thead>
+        <tbody>
+            {% for r in requests %}
+            <tr>
+                <td>{{ r.leave_date.strftime('%d %b %Y') }}</td>
+                <td>{{ r.reason or '—' }}</td>
+                <td>
+                    {% if r.status == 'pending' %}<span class="badge badge-pending">Pending</span>
+                    {% elif r.status == 'approved' %}<span class="badge badge-success">Approved</span>
+                    {% else %}<span class="badge badge-cancelled">Declined</span>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--color-text-muted);">No leave requests yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

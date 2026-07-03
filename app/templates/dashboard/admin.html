@@ -15,6 +15,10 @@
             <div class="stat-number">{{ todays_appointments }}</div>
             <div class="stat-label">Today's Appointments</div>
         </div>
+         <div class="stat-card">
+            <div class="stat-number">{{ pending_leave_requests }}</div>
+            <div class="stat-label">Pending Leave Requests</div>
+        </div>
     </div>
 
     <div class="action-cards">
@@ -27,6 +31,11 @@
             <div class="action-icon">📆</div>
             <h3>Google Calendar</h3>
             <p>Connect or check calendar sync status.</p>
+        </a>
+        <a href="{{ url_for('admin.leave_requests') }}" class="action-card">
+            <div class="action-icon">📋</div>
+            <h3>Leave Requests</h3>
+            <p>Review and approve/decline doctor leave requests.</p>
         </a>
     </div>
 </div>

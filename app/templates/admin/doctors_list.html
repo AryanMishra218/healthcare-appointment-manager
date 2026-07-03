@@ -13,6 +13,7 @@
     <table class="data-table">
         <thead>
             <tr>
+                <th>Doctor Id</th>
                 <th>Name</th>
                 <th>Specialization</th>
                 <th>Working Hours</th>
@@ -23,6 +24,7 @@
         <tbody>
             {% for doctor in doctors %}
             <tr>
+                <td>{{ doctor.user.username }}</td>
                 <td>{{ doctor.user.name }}</td>
                 <td>{{ doctor.specialization }}</td>
                 <td>{{ doctor.working_start.strftime('%I:%M %p') }} - {{ doctor.working_end.strftime('%I:%M %p') }}</td>

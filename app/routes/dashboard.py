@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 
 from app.utils import roles_required
-from app.models import DoctorProfile, Appointment
+from app.models import DoctorProfile, Appointment, LeaveRequest
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
@@ -86,11 +86,13 @@ def admin_dashboard():
     todays_appointments = Appointment.query.filter_by(
         appointment_date=today, status="booked"
     ).count()
+    pending_leave_requests = LeaveRequest.query.filter_by(status="pending").count()
 
     return render_template(
         "dashboard/admin.html",
         doctor_count=doctor_count,
         todays_appointments=todays_appointments,
+        pending_leave_requests=pending_leave_requests,
     )
 
 

@@ -21,8 +21,14 @@ class RegisterForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    """Used by ALL roles (patient, doctor, admin) -- same login page for everyone."""
-    email = StringField("Email", validators=[DataRequired(), Email()])
+    """
+    Used by ALL roles -- same login page for everyone.
+    Patients and admin type their email. Doctors type their Doctor ID
+    (e.g. 'DOC0007') instead, since their email is never their login.
+    We accept both in ONE field and figure out which one it is in the
+    route itself.
+    """
+    identifier = StringField("Email or Doctor ID", validators=[DataRequired()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("Log In")
 
@@ -78,6 +84,11 @@ class AddLeaveForm(FlaskForm):
     reason = TextAreaField("Reason (optional)", validators=[Length(max=255)])
     submit = SubmitField("Add Leave Day")
 
+class LeaveRequestForm(FlaskForm):
+    """Doctor requests a day off -- goes to admin for approval."""
+    leave_date = DateField("Date you want off", validators=[DataRequired()])
+    reason = TextAreaField("Reason (optional)", validators=[Length(max=255)])
+    submit = SubmitField("Submit Leave Request")
 
 class DateSelectForm(FlaskForm):
     """Patient picks a date to view a doctor's available slots."""

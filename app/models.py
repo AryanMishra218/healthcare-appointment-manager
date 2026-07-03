@@ -24,6 +24,11 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
 
+    # Only doctors have this -- their login identifier instead of email.
+    # Format: 'DOC' + zero-padded user id, e.g. 'DOC0007'. Null for
+    # patients and admin, who still log in with their email.
+    username = db.Column(db.String(20), unique=True, nullable=True, index=True)
+
     # We NEVER store the actual password. We store a one-way scrambled
     # version (a "hash"). Even if our database leaks, passwords stay safe.
     password_hash = db.Column(db.String(255), nullable=False)
@@ -95,6 +100,23 @@ class DoctorLeave(db.Model):
         db.UniqueConstraint("doctor_id", "leave_date", name="uq_doctor_leave_date"),
     )
 
+class LeaveRequest(db.Model):
+    """
+    A doctor's REQUEST to take a day off. Doesn't take effect until an
+    admin approves it -- only then does it become an actual DoctorLeave
+    row (which is what triggers appointment cancellation/notification).
+    """
+    __tablename__ = "leave_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer, db.ForeignKey("doctor_profiles.id"), nullable=False)
+    leave_date = db.Column(db.Date, nullable=False)
+    reason = db.Column(db.String(255))
+    status = db.Column(db.String(20), nullable=False, default="pending")  # pending / approved / declined
+    requested_at = db.Column(db.DateTime, default=datetime.utcnow)
+    decided_at = db.Column(db.DateTime)
+
+    doctor = db.relationship("DoctorProfile", backref="leave_requests")
 
 class Appointment(db.Model):
     """

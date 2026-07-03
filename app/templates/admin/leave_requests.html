@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Leave Requests{% endblock %}
+{% block content %}
+<div class="dashboard-container">
+    <a href="javascript:history.back()" class="back-link">← Back</a>
+    <h1>Leave Requests</h1>
+
+    {% include "_flash.html" %}
+
+    <h2>Pending ({{ pending|length }})</h2>
+    {% if pending %}
+    <table class="data-table">
+        <thead>
+            <tr><th>DOCTOR</th><th>DATE</th><th>REASON</th><th>ACTION</th></tr>
+        </thead>
+        <tbody>
+            {% for r in pending %}
+            <tr>
+                <td>{{ r.doctor.user.name }}</td>
+                <td>{{ r.leave_date.strftime('%d %b %Y') }}</td>
+                <td>{{ r.reason or '—' }}</td>
+                <td style="display:flex; gap:8px;">
+                <form method="POST" action="{{ url_for('admin.approve_leave_request', request_id=r.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-small">Accept</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin.decline_leave_request', request_id=r.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn-small btn-danger">Decline</button>
+                </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--color-text-muted);">No pending requests.</p>
+    {% endif %}
+
+    <h2 style="margin-top: 32px;">Recently Decided</h2>
+    {% if decided %}
+    <table class="data-table">
+        <thead>
+            <tr><th>DOCTOR</th><th>DATE</th><th>STATUS</th></tr>
+        </thead>
+        <tbody>
+            {% for r in decided %}
+            <tr>
+                <td>{{ r.doctor.user.name }}</td>
+                <td>{{ r.leave_date.strftime('%d %b %Y') }}</td>
+                <td>{{ "Approved" if r.status == "approved" else "Declined" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--color-text-muted);">No decisions yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
