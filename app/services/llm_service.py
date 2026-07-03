@@ -39,7 +39,7 @@ def generate_pre_visit_summary(symptoms_text):
         return None
 
     try:
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=api_key, http_options=types.HttpOptions(api_version="v1"))
 
         prompt = PRE_VISIT_PROMPT_TEMPLATE.format(symptoms=symptoms_text)
         response = None
@@ -52,7 +52,6 @@ def generate_pre_visit_summary(symptoms_text):
                     config=types.GenerateContentConfig(
                         temperature=0.3,
                         max_output_tokens=2000,
-                        thinking_config=types.ThinkingConfig(thinking_budget=0),
                     ),
                 )
                 print(f"Succeeded with model: {model_name}")
@@ -129,8 +128,11 @@ def generate_post_visit_summary(clinical_notes, prescription):
     failure -- same fail-safe philosophy as generate_pre_visit_summary.
     """
     api_key = current_app.config.get("GEMINI_API_KEY")
+    print("=" * 80)
+    print("KEY USED BY FLASK:", repr(api_key[:10]) if api_key else None, "length:", len(api_key) if api_key else 0)
+    print("=" * 80)
     if not api_key:
-        logger.warning("GEMINI_API_KEY not configured -- skipping post-visit AI summary.")
+        logger.warning("GEMINI_API_KEY not configured -- skipping AI summary.")
         return None
 
     combined_notes = f"Clinical notes: {clinical_notes}\nPrescription: {prescription or 'None prescribed'}"
@@ -143,7 +145,7 @@ def generate_post_visit_summary(clinical_notes, prescription):
     )
 
     try:
-        client = genai.Client(api_key=api_key)
+        client = genai.Client(api_key=api_key, http_options=types.HttpOptions(api_version="v1"))
         response = None
         last_error = None
         for model_name in GEMINI_MODELS:
@@ -154,7 +156,6 @@ def generate_post_visit_summary(clinical_notes, prescription):
                     config=types.GenerateContentConfig(
                         temperature=0.4,
                         max_output_tokens=800,
-                        thinking_config=types.ThinkingConfig(thinking_budget=0),
                     ),
                 )
                 break
