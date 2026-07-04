@@ -38,7 +38,7 @@ email notifications, Google Calendar integration, and background reminder jobs.
 | **Booking engine** | Slot generation, 5-minute holds, double-booking prevention at DB level |
 | **AI pre-visit summary** | Gemini analyzes symptoms → urgency level + chief complaint + 3 questions for doctor |
 | **AI post-visit summary** | Gemini converts clinical notes into patient-friendly language |
-| **Email notifications** | Booking confirmation, cancellation, reminders via Gmail SMTP |
+| **Email notifications** | Booking confirmation, cancellation, reminders via Brevo API |
 | **Google Calendar** | Events created for both patient and doctor on booking; deleted on cancellation |
 | **Leave management** | Admin marks doctor leave → conflicting bookings auto-cancelled + patients notified |
 | **Background jobs** | Appointment reminders (8 AM daily), medication reminders (hourly), email retry (every 30 min) |
@@ -51,7 +51,7 @@ email notifications, Google Calendar integration, and background reminder jobs.
 - **Backend:** Python 3.11+, Flask 3.0, SQLAlchemy, Flask-Login, Flask-WTF
 - **Database:** PostgreSQL (production) / SQLite (local development)
 - **AI:** Google Gemini 1.5 Flash
-- **Email:** Gmail SMTP
+- **Email:** Brevo (transactional email API)
 - **Calendar:** Google Calendar API v3 with OAuth 2.0
 - **Background jobs:** APScheduler
 - **Deployment:** Render
@@ -114,12 +114,12 @@ Copy `.env.example` to `.env` and fill in the values below.
 | `SECRET_KEY` | ✅ Yes | Any long random string. Generate with: `python -c "import secrets; print(secrets.token_hex(32))"` |
 | `DATABASE_URL` | Production only | PostgreSQL URL from Render. Leave blank locally (uses SQLite). |
 | `GEMINI_API_KEY` | Optional | Free key from [aistudio.google.com](https://aistudio.google.com/app/apikey). Without it, AI summaries are skipped gracefully. |
-| `GMAIL_ADDRESS` | Optional | The Gmail address emails will be sent from. Without it, emails are logged as failed but booking works. |
-| `GMAIL_APP_PASSWORD` | Optional | A Gmail App Password (not your normal password) — generate one at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords). |
+| `BREVO_API_KEY` | Optional | From [brevo.com](https://www.brevo.com) → Settings → SMTP & API → API Keys. Without it, emails are logged as failed but booking works. |
+| `GMAIL_ADDRESS` | Optional | The verified sender email address in your Brevo account (emails are sent "from" this address). |(https://myaccount.google.com/apppasswords). |
 | `GOOGLE_CLIENT_ID` | Optional | From Google Cloud Console (see Google Calendar Setup). |
 | `GOOGLE_CLIENT_SECRET` | Optional | From Google Cloud Console. |
 
-> **Note:** All external services (Gemini, Gmail, Google Calendar) are optional for local development.
+> **Note:** All external services (Gemini, Brevo, Google Calendar) are optional for local development.
 > The core booking and visit flow works without any of them.
 
 ---
@@ -348,7 +348,7 @@ healthcare-appointment-manager/
 │   ├── services/
 │   │   ├── scheduling.py    # Slot generation, hold expiry
 │   │   ├── llm_service.py   # Gemini AI integration
-│   │   ├── email_service.py # Gmail SMTP integration, retry logic
+│   │   ├── email_service.py # Brevo API integration, retry logic
 │   │   ├── calendar_service.py # Google Calendar API
 │   │   ├── reminder_service.py # Prescription parsing, reminder logic
 │   │   └── scheduler.py     # APScheduler background jobs
