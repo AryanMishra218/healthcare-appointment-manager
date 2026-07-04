@@ -13,7 +13,7 @@ HOW GMAIL SMTP WORKS:
 This is exactly what happens when you send an email from your phone --
 we're just doing it from code instead.
 """
-
+import requests
 import smtplib
 import logging
 from email.mime.multipart import MIMEMultipart
@@ -30,46 +30,43 @@ logger = logging.getLogger(__name__)
 #  INTERNAL HELPERS
 # ─────────────────────────────────────────────
 
+
 def _actually_send(to_email, subject, html_body):
     """
-    The single point where emails actually leave our app via Gmail.
+    Sends email via Brevo's HTTPS API instead of Gmail SMTP.
+    We switched from SMTP because Render's free tier blocks outbound
+    SMTP ports (25/465/587) entirely -- this uses port 443 (HTTPS)
+    instead, which is never blocked.
     Returns (True, None) on success, (False, error_message) on failure.
     """
-    gmail_address  = current_app.config.get("GMAIL_ADDRESS")
-    gmail_password = current_app.config.get("GMAIL_APP_PASSWORD")
+    api_key = current_app.config.get("BREVO_API_KEY")
+    sender_email = current_app.config.get("GMAIL_ADDRESS")  # reused as the verified sender
 
-    if not gmail_address or not gmail_password:
-        logger.warning("Gmail credentials not configured — email skipped.")
-        return False, "Gmail not configured"
+    if not api_key or not sender_email:
+        logger.warning("Brevo credentials not configured — email skipped.")
+        return False, "Brevo not configured"
 
     try:
-        # Build the email message
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = subject
-        msg["From"]    = f"HealthConnect <{gmail_address}>"
-        msg["To"]      = to_email
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={
+                "accept": "application/json",
+                "api-key": api_key,
+                "content-type": "application/json",
+            },
+            json={
+                "sender": {"name": "HealthConnect", "email": sender_email},
+                "to": [{"email": to_email}],
+                "subject": subject,
+                "htmlContent": html_body,
+            },
+            timeout=10,
+        )
 
-        # Attach the HTML body
-        msg.attach(MIMEText(html_body, "html"))
+        if response.status_code in (200, 201):
+            return True, None
 
-        # Connect to Gmail's SMTP server
-        # Port 587 = TLS (encrypted, required by Gmail)
-        with smtplib.SMTP("smtp.gmail.com", 587) as server:
-            server.ehlo()           # say hello to the server
-            server.starttls()       # upgrade to encrypted connection
-            server.ehlo()           # say hello again after encryption
-            server.login(gmail_address, gmail_password)
-            server.sendmail(gmail_address, to_email, msg.as_string())
-
-        return True, None
-
-    except smtplib.SMTPAuthenticationError:
-        error = "Gmail authentication failed. Check your App Password in .env"
-        logger.error(error)
-        return False, error
-
-    except smtplib.SMTPException as e:
-        error = f"SMTP error: {str(e)}"
+        error = f"Brevo API error {response.status_code}: {response.text}"
         logger.error(error)
         return False, error
 
@@ -77,7 +74,7 @@ def _actually_send(to_email, subject, html_body):
         error = f"Unexpected email error: {str(e)}"
         logger.error(error)
         return False, error
-
+    
 
 def _log_and_send(to_email, notification_type, subject, html_body,
                   appointment_id=None, existing_log_id=None):

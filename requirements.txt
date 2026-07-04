@@ -13,3 +13,4 @@ google-auth-oauthlib==1.2.1
 google-api-python-client==2.137.0
 APScheduler==3.10.4
 gunicorn==22.0.0
+requests==2.32.3

@@ -37,3 +37,4 @@ class Config:
 
     GMAIL_ADDRESS = os.environ.get("GMAIL_ADDRESS")
     GMAIL_APP_PASSWORD = os.environ.get("GMAIL_APP_PASSWORD")
+    BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
