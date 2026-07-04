@@ -280,10 +280,16 @@ def cancel_appointment(appointment_id):
     db.session.commit()
 
     # Notify the patient their booking is cancelled.
-    email_service.send_cancellation_patient(appointment)
+    try:
+        email_service.send_cancellation_patient(appointment)
+    except Exception as e:
+        current_app.logger.error(f"Cancellation email failed: {e}")
 
     # Delete the calendar event -- Google notifies attendees automatically.
-    calendar_service.delete_calendar_event(appointment)
+    try:
+        calendar_service.delete_calendar_event(appointment)
+    except Exception as e:
+        current_app.logger.error(f"Calendar event deletion failed: {e}")
 
     flash("Appointment cancelled.", "success")
     return redirect(url_for("patient.my_appointments"))
