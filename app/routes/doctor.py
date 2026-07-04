@@ -1,6 +1,6 @@
 from datetime import date as date_cls
 
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, current_app
 from flask_login import current_user
 
 from app.forms import VisitNoteForm, ChangePasswordForm, LeaveRequestForm
@@ -83,8 +83,11 @@ def appointment_detail(appointment_id):
 
         db.session.commit()
 
-        # Notify the patient their summary is ready to read.
-        email_service.send_visit_summary_notification(appointment)
+       # Notify the patient their summary is ready to read.
+        try:
+            email_service.send_visit_summary_notification(appointment)
+        except Exception as e:
+            current_app.logger.error(f"Visit summary email failed: {e}")
 
         return redirect(url_for("doctor.appointments_list"))
 

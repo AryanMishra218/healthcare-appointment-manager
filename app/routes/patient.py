@@ -1,7 +1,7 @@
 import json
 from datetime import datetime, date as date_cls, timedelta
 
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import current_user
 from sqlalchemy.exc import IntegrityError
 
@@ -211,15 +211,21 @@ def confirm_booking(appointment_id):
         db.session.commit()
 
         # Send confirmation emails to both patient and doctor.
-        email_service.send_booking_confirmation_patient(appointment)
-        email_service.send_booking_confirmation_doctor(appointment)
+        try:
+            email_service.send_booking_confirmation_patient(appointment)
+            email_service.send_booking_confirmation_doctor(appointment)
+        except Exception as e:
+            current_app.logger.error(f"Booking confirmation emails failed: {e}")
 
         # Create a Google Calendar event (clinic calendar, both as attendees).
         # Fire-and-forget: failure here never blocks the booking.
-        event_id = calendar_service.create_calendar_event(appointment)
-        if event_id:
-            appointment.google_calendar_event_id = event_id
-            db.session.commit()
+        try:
+            event_id = calendar_service.create_calendar_event(appointment)
+            if event_id:
+                appointment.google_calendar_event_id = event_id
+                db.session.commit()
+        except Exception as e:
+            current_app.logger.error(f"Calendar event creation failed: {e}")
 
         flash("Appointment confirmed! A confirmation email has been sent.", "success")
         return redirect(url_for("patient.my_appointments"))
