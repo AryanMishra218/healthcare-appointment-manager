@@ -3,7 +3,15 @@
 A full-stack clinic management platform with AI-powered visit summaries,
 email notifications, Google Calendar integration, and background reminder jobs.
 
-**Live demo:** *(add your Render URL here after deployment)*
+**Live demo:** https://healthcare-appointment-manager-ywtv.onrender.com/
+
+## 🔑 Demo Credentials
+
+| Role | Email / ID | Password |
+|---|---|---|
+| Admin | demo.admin@healthconnect.com | Demo@1234 |
+| Patient | Register your own account (takes 10 seconds), or use: `patient.demo@healthconnect.com` | Demo@1234 |
+| Doctor | Log in as Admin → **Manage Doctors** to see all doctor IDs and create/reset one | *(temp password shown on creation)* |
 
 ---
 
