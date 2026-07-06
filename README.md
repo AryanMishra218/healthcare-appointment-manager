@@ -326,6 +326,22 @@ Tests use mocking for all external APIs (Gemini, Gmail SMTP, Google Calendar)
 so they run instantly without real credentials.
 
 ---
+<img width="1918" height="902" alt="image" src="https://github.com/user-attachments/assets/ad14589c-9922-4289-954d-83f4b55fadda" />
+
+<img width="1918" height="886" alt="image" src="https://github.com/user-attachments/assets/98c474b1-ccbd-414b-96c3-64145a8c0026" />
+
+<img width="1908" height="757" alt="image" src="https://github.com/user-attachments/assets/8a9cf17c-8a00-402a-bc55-25d5d07e643c" />
+
+<img width="1918" height="862" alt="image" src="https://github.com/user-attachments/assets/513cb931-c038-4d9b-a728-0a97a57024dc" />
+
+<img width="1912" height="893" alt="image" src="https://github.com/user-attachments/assets/e47c9e2b-6304-494e-860e-16b43a9fc84c" />
+
+<img width="1902" height="885" alt="image" src="https://github.com/user-attachments/assets/e6634061-112f-412a-bb61-e282551f8776" />
+
+<img width="1887" height="857" alt="image" src="https://github.com/user-attachments/assets/979f8e06-d1d1-4a24-9cfd-e8c99a7d6224" />
+
+<img width="897" height="912" alt="patient appointmentds" src="https://github.com/user-attachments/assets/89035bb3-cf05-496f-b7ab-ce3e4937879d" />
+
 
 ## Project Structure
 
